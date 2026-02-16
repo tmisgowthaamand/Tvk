@@ -20,12 +20,9 @@ async function connectVoterDB() {
   try {
     console.log('🔌 Connecting to DB1 (Voter Database - READ ONLY)...');
     voterClient = new MongoClient(process.env.MONGO_URI_VOTERS, {
-      tls: true,
-      serverApi: {
-        version: '1',
-        strict: true,
-        deprecationErrors: true,
-      }
+      connectTimeoutMS: 30000,
+      socketTimeoutMS: 45000,
+      family: 4 // Force IPv4 to avoid handshake issues on some cloud platforms
     });
     await voterClient.connect();
     voterDb = voterClient.db(process.env.MONGO_DB_VOTERS);
@@ -50,12 +47,9 @@ async function connectMemberDB() {
   try {
     console.log('🔌 Connecting to DB2 (Member Database - WRITE)...');
     memberClient = new MongoClient(process.env.MONGO_URI_MEMBERS, {
-      tls: true,
-      serverApi: {
-        version: '1',
-        strict: true,
-        deprecationErrors: true,
-      }
+      connectTimeoutMS: 30000,
+      socketTimeoutMS: 45000,
+      family: 4
     });
     await memberClient.connect();
     memberDb = memberClient.db(process.env.MONGO_DB_MEMBERS);
