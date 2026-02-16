@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: tvk-backend
+    env: node
+    plan: free # Change to starter if you need more power
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: MONGO_URI_VOTERS
+        sync: false # Set in Render Dashboard
+      - key: MONGO_DB_VOTERS
+        value: voter_db
+      - key: MONGO_URI_MEMBERS
+        sync: false # Set in Render Dashboard
+      - key: MONGO_DB_MEMBERS
+        value: member_db
+      - key: WHATSAPP_API_TOKEN
+        sync: false # Set in Render Dashboard
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        sync: false # Set in Render Dashboard
+      - key: WHATSAPP_VERIFY_TOKEN
+        sync: false # Set in Render Dashboard
+      - key: WHATSAPP_WEBHOOK_URL
+        sync: false # Set in Render Dashboard (this will be your render URL + /api/webhook/whatsapp)

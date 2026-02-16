@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TVK Voter Support - WhatsApp Chat</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0b141a;
+      --bg-chat: #0b141a;
+      --bg-header: #1f2c34;
+      --bg-input: #1f2c34;
+      --bg-sent: #005c4b;
+      --bg-received: #1f2c34;
+      --text-primary: #e9edef;
+      --text-secondary: #8696a0;
+      --accent: #00a884;
+      --accent-hover: #06cf9c;
+      --border: #2a3942;
+      --danger: #ef4444;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 500px;
+      height: 100vh;
+      max-height: 900px;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-chat);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Wallpaper pattern */
+    .app-container::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      z-index: 0;
+    }
+
+    /* Header */
+    .chat-header {
+      background: var(--bg-header);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      z-index: 10;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .chat-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #065f46);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .chat-info h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .chat-info p {
+      font-size: 12px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .online-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      display: inline-block;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Messages */
+    .messages-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 5;
+      scroll-behavior: smooth;
+    }
+
+    .messages-container::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .messages-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .messages-container::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    .message {
+      max-width: 85%;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.5;
+      position: relative;
+      animation: slideIn 0.3s ease-out;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.sent {
+      background: var(--bg-sent);
+      align-self: flex-end;
+      border-bottom-right-radius: 2px;
+    }
+
+    .message.received {
+      background: var(--bg-received);
+      align-self: flex-start;
+      border-bottom-left-radius: 2px;
+      border: 1px solid var(--border);
+    }
+
+    .message .time {
+      font-size: 11px;
+      color: var(--text-secondary);
+      text-align: right;
+      margin-top: 4px;
+    }
+
+    .message .msg-text strong,
+    .message .msg-text b {
+      color: var(--accent-hover);
+    }
+
+    /* Typing indicator */
+    .typing-indicator {
+      display: none;
+      align-self: flex-start;
+      background: var(--bg-received);
+      padding: 12px 18px;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+    }
+
+    .typing-indicator.active {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--text-secondary);
+      border-radius: 50%;
+      animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-6px); }
+    }
+
+    /* Quick replies */
+    .quick-replies {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 8px 16px;
+      z-index: 5;
+    }
+
+    .quick-btn {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+    }
+
+    .quick-btn:hover {
+      background: var(--accent);
+      color: white;
+    }
+
+    /* Input area */
+    .input-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: var(--bg-input);
+      border-top: 1px solid var(--border);
+      z-index: 10;
+    }
+
+    .input-area input {
+      flex: 1;
+      background: #2a3942;
+      border: none;
+      outline: none;
+      color: var(--text-primary);
+      padding: 12px 16px;
+      border-radius: 24px;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .input-area input::placeholder {
+      color: var(--text-secondary);
+    }
+
+    .send-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .send-btn:hover {
+      background: var(--accent-hover);
+      transform: scale(1.05);
+    }
+
+    .send-btn:active {
+      transform: scale(0.95);
+    }
+
+    .send-btn svg {
+      width: 22px;
+      height: 22px;
+      fill: white;
+    }
+
+    /* Phone number banner */
+    .phone-banner {
+      background: #172b21;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--accent);
+      z-index: 5;
+      border-bottom: 1px solid #1e3a2e;
+    }
+
+    .phone-banner input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--accent-hover);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      width: 140px;
+      text-align: right;
+    }
+
+    /* Date separator */
+    .date-sep {
+      text-align: center;
+      padding: 8px;
+    }
+
+    .date-sep span {
+      background: #1c2e36;
+      color: var(--text-secondary);
+      font-size: 12px;
+      padding: 4px 14px;
+      border-radius: 8px;
+    }
+
+    /* Sample voter IDs */
+    .sample-ids {
+      background: #172b21;
+      padding: 8px 16px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      z-index: 5;
+      border-bottom: 1px solid #1e3a2e;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .sample-ids strong {
+      color: var(--accent);
+    }
+
+    .sample-id {
+      background: #2a3942;
+      padding: 2px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      color: var(--accent-hover);
+      font-family: monospace;
+      transition: background 0.2s;
+    }
+
+    .sample-id:hover {
+      background: var(--accent);
+      color: white;
+    }
+
+    @media (max-width: 500px) {
+      .app-container {
+        max-height: 100vh;
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <div class="chat-header">
+      <div class="chat-avatar">TVK</div>
+      <div class="chat-info">
+        <h2>TVK Voter Support</h2>
+        <p><span class="online-dot"></span> online</p>
+      </div>
+    </div>
+
+    <!-- Phone Banner -->
+    <div class="phone-banner">
+      <span>📱 Your number:</span>
+      <input type="text" id="phoneInput" value="919876543210" placeholder="Phone number">
+    </div>
+
+    <!-- Sample Voter IDs -->
+    <div class="sample-ids">
+      <strong>Try IDs:</strong>
+      <span class="sample-id" onclick="useSampleId('WJB1079656')">WJB1079656</span>
+      <span class="sample-id" onclick="useSampleId('WJB2199364')">WJB2199364</span>
+      <span class="sample-id" onclick="useSampleId('WJB1247659')">WJB1247659</span>
+      <span class="sample-id" onclick="useSampleId('WJB2703338')">WJB2703338</span>
+    </div>
+
+    <!-- Messages -->
+    <div class="messages-container" id="messagesContainer">
+      <div class="date-sep"><span>Today</span></div>
+    </div>
+
+    <!-- Typing indicator -->
+    <div class="typing-indicator" id="typingIndicator">
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+    </div>
+
+    <!-- Quick Replies -->
+    <div class="quick-replies" id="quickReplies">
+      <button class="quick-btn" onclick="sendQuick('Hi')">👋 Start</button>
+      <button class="quick-btn" onclick="sendQuick('1')">1️⃣ Verify</button>
+      <button class="quick-btn" onclick="sendQuick('2')">2️⃣ Member</button>
+      <button class="quick-btn" onclick="sendQuick('3')">3️⃣ Grievance</button>
+      <button class="quick-btn" onclick="sendQuick('menu')">🏠 Menu</button>
+    </div>
+
+    <!-- Input -->
+    <div class="input-area">
+      <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off">
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const messagesContainer = document.getElementById('messagesContainer');
+    const messageInput = document.getElementById('messageInput');
+    const phoneInput = document.getElementById('phoneInput');
+    const typingIndicator = document.getElementById('typingIndicator');
+    let isProcessing = false;
+
+    // Enter key to send
+    messageInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    function getTime() {
+      return new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+    }
+
+    function formatBold(text) {
+      // Convert *text* to <strong>text</strong>
+      return text.replace(/\*(.*?)\*/g, '<strong>$1</strong>');
+    }
+
+    function addMessage(text, type) {
+      const div = document.createElement('div');
+      div.className = `message ${type}`;
+      div.innerHTML = `
+        <div class="msg-text">${formatBold(text.replace(/\n/g, '<br>'))}</div>
+        <div class="time">${getTime()} ${type === 'sent' ? '✓✓' : ''}</div>
+      `;
+      messagesContainer.appendChild(div);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const text = messageInput.value.trim();
+      if (!text || isProcessing) return;
+
+      const phone = phoneInput.value.trim() || '919876543210';
+      messageInput.value = '';
+      isProcessing = true;
+
+      // Show sent message
+      addMessage(text, 'sent');
+
+      // Show typing
+      typingIndicator.classList.add('active');
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phoneNumber: phone, message: text })
+        });
+
+        const data = await res.json();
+
+        // Simulate typing delay
+        await new Promise(r => setTimeout(r, 600 + Math.random() * 800));
+
+        typingIndicator.classList.remove('active');
+
+        if (data.success) {
+          addMessage(data.reply, 'received');
+        } else {
+          addMessage('⚠️ Error: ' + (data.error || 'Something went wrong'), 'received');
+        }
+      } catch (error) {
+        typingIndicator.classList.remove('active');
+        addMessage('⚠️ Connection error. Is the server running?', 'received');
+      }
+
+      isProcessing = false;
+      messageInput.focus();
+    }
+
+    function sendQuick(text) {
+      messageInput.value = text;
+      sendMessage();
+    }
+
+    function useSampleId(id) {
+      messageInput.value = id;
+      messageInput.focus();
+    }
+
+    // Auto-start
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        addMessage('🙏 *Welcome to TVK Voter Support System* 👋\n\nSend *Hi* to get started!', 'received');
+      }, 500);
+      messageInput.focus();
+    });
+  </script>
+</body>
+</html>
