@@ -1,12 +1,23 @@
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+// Ensure API_BASE is clean and has the /api prefix correctly
+let base = import.meta.env.VITE_API_URL || '';
+if (base.endsWith('/')) base = base.slice(0, -1);
+const API_BASE = base.includes('/api') ? base : `${base}/api`;
 
 export async function apiGet(path, params = {}) {
-    const url = new URL(`${API_BASE}${path}`, window.location.origin);
+    const url = new URL(`${API_BASE}${path}`);
     Object.entries(params).forEach(([k, v]) => {
         if (v !== '' && v !== undefined && v !== null) url.searchParams.set(k, v);
     });
+
     const res = await fetch(url);
-    return res.json();
+    const contentType = res.headers.get("content-type");
+    if (contentType && contentType.indexOf("application/json") !== -1) {
+        return res.json();
+    } else {
+        const text = await res.text();
+        console.error("Non-JSON response received:", text.substring(0, 100));
+        return { success: false, error: "Server returned non-JSON response. Check API URL." };
+    }
 }
 
 export async function apiPost(path, body = {}) {
@@ -15,7 +26,13 @@ export async function apiPost(path, body = {}) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
     });
-    return res.json();
+
+    const contentType = res.headers.get("content-type");
+    if (contentType && contentType.indexOf("application/json") !== -1) {
+        return res.json();
+    } else {
+        return { success: false, error: "Server returned non-JSON response." };
+    }
 }
 
 export async function apiPatch(path, body = {}) {
@@ -24,7 +41,13 @@ export async function apiPatch(path, body = {}) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
     });
-    return res.json();
+
+    const contentType = res.headers.get("content-type");
+    if (contentType && contentType.indexOf("application/json") !== -1) {
+        return res.json();
+    } else {
+        return { success: false, error: "Server returned non-JSON response." };
+    }
 }
 
 export function formatDate(dateStr) {
