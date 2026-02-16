@@ -3,6 +3,7 @@ services:
     name: tvk-backend
     env: node
     plan: free # Change to starter if you need more power
+    rootDir: backend
     buildCommand: npm install
     startCommand: npm start
     envVars:

@@ -6,13 +6,14 @@ This guide explains how to deploy the **TVK Voter Support System** to production
 
 ## 🏗️ 1. Backend Deployment (Render)
 
-The root folder contains the Node.js server and WhatsApp bot.
+The server and WhatsApp bot are in the `/backend` folder.
 
 1.  **Push your code** to a GitHub repository.
 2.  Create a new **Web Service** on [Render](https://render.com/).
 3.  Connect your GitHub repository.
 4.  **Settings:**
     -   **Environment:** `Node`
+    -   **Root Directory:** `backend` (Very Important!)
     -   **Build Command:** `npm install`
     -   **Start Command:** `npm start`
 5.  **Environment Variables:**
@@ -30,13 +31,13 @@ The root folder contains the Node.js server and WhatsApp bot.
 
 ## 🎨 2. Frontend Deployment (Vercel)
 
-The `client` folder contains the React/Vite dashboard.
+The React dashboard is in the `/frontend` folder.
 
 1.  In the [Vercel](https://vercel.com/) dashboard, click **Add New** > **Project**.
 2.  Connect your GitHub repository.
 3.  **Project Settings:**
     -   **Framework Preset:** `Vite`
-    -   **Root Directory:** `client` (Very Important! Click Edit and select the `client` folder)
+    -   **Root Directory:** `frontend` (Very Important!)
     -   **Build Command:** `npm run build`
     -   **Output Directory:** `dist`
 4.  **Environment Variables:**
@@ -56,8 +57,8 @@ Once the backend is live on Render:
 
 ## 🏠 4. Local Development
 
-To run locally, you can continue using:
--   **Backend:** `node server.js` (Root)
--   **Frontend:** `npm run dev` (Inside `client`)
+To run locally:
+-   **Backend:** Navigate to `backend` and run `node server.js`
+-   **Frontend:** Navigate to `frontend` and run `npm run dev`
 
-_Note: For the local frontend to talk to the local backend, ensure `VITE_API_URL` is NOT set in `client/.env` (it will default to `/api` which Vite proxies via `vite.config.js`)._
+_Note: For the local frontend to talk to the local backend, ensure `VITE_API_URL` is NOT set in `frontend/.env` (it will default to `/api` which Vite proxies via `vite.config.js`)._
