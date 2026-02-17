@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { apiGet, apiPatch, apiPost, formatDate, truncate } from '../api'
-import { RefreshCw, Send, MessageCircle } from 'lucide-react'
+import { RefreshCw, Send, MessageCircle, MapPin } from 'lucide-react'
 import './Dashboard.css'
 
 const CATEGORIES = ['All', 'Water & Drainage', 'Roads & Infrastructure', 'Electricity',
@@ -77,7 +77,7 @@ export default function Grievances() {
                     <div className="table-wrap">
                         <table>
                             <thead>
-                                <tr><th>Ticket</th><th>Name</th><th>📱 Phone</th><th>Category</th><th>Message</th><th>Booth</th><th>Status</th><th>Date</th><th>Actions</th></tr>
+                                <tr><th>Ticket</th><th>Name</th><th>📱 Phone</th><th>Category</th><th>Message</th><th>Booth</th><th>Location</th><th>Status</th><th>Date</th><th>Actions</th></tr>
                             </thead>
                             <tbody>
                                 {items.map(g => (
@@ -88,6 +88,13 @@ export default function Grievances() {
                                         <td><span className="category-tag">{g.category}</span></td>
                                         <td title={g.message}>{truncate(g.message, 25)}</td>
                                         <td>{g.partNumber}</td>
+                                        <td>
+                                            {g.googleMapsLink ? (
+                                                <a href={g.googleMapsLink} target="_blank" rel="noopener noreferrer" className="location-link" title={g.actualAddress || 'View on Map'}>
+                                                    <MapPin size={16} /> Spot
+                                                </a>
+                                            ) : '—'}
+                                        </td>
                                         <td><span className={`status-badge ${g.status.replace(' ', '-')}`}>{g.status}</span></td>
                                         <td>{formatDate(g.createdAt)}</td>
                                         <td>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { apiGet, apiPost, formatDate } from '../api'
-import { RefreshCw, Send, MessageCircle } from 'lucide-react'
+import { RefreshCw, Send, MessageCircle, MapPin } from 'lucide-react'
 import './Dashboard.css'
 
 export default function Subscribers() {
@@ -78,7 +78,7 @@ export default function Subscribers() {
                     <div className="table-wrap">
                         <table>
                             <thead>
-                                <tr><th>ID</th><th>Name</th><th>📱 Phone</th><th>Voter ID</th><th>Booth</th><th>Assembly</th><th>Status</th><th>Date</th><th>Actions</th></tr>
+                                <tr><th>ID</th><th>Name</th><th>📱 Phone</th><th>Booth</th><th>Location</th><th>Status</th><th>Date</th><th>Actions</th></tr>
                             </thead>
                             <tbody>
                                 {items.map(s => (
@@ -88,7 +88,13 @@ export default function Subscribers() {
                                         <td><code>{s.phoneNumber}</code></td>
                                         <td>{s.voterId}</td>
                                         <td>{s.partNumber}</td>
-                                        <td>{s.assemblyName}</td>
+                                        <td>
+                                            {s.googleMapsLink ? (
+                                                <a href={s.googleMapsLink} target="_blank" rel="noopener noreferrer" className="location-link" title={s.actualAddress || 'View on Map'}>
+                                                    <MapPin size={16} /> Spot
+                                                </a>
+                                            ) : '—'}
+                                        </td>
                                         <td><span className="status-badge Active">{s.status || 'Active'}</span></td>
                                         <td>{formatDate(s.createdAt)}</td>
                                         <td>

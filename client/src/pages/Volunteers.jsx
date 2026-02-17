@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { apiGet, apiPatch, apiPost, formatDate } from '../api'
-import { RefreshCw, Send, MessageCircle } from 'lucide-react'
+import { RefreshCw, Send, MessageCircle, MapPin } from 'lucide-react'
 import { UpdateModal } from './Grievances'
 import './Dashboard.css'
 
@@ -69,7 +69,7 @@ export default function Volunteers() {
                     <div className="table-wrap">
                         <table>
                             <thead>
-                                <tr><th>ID</th><th>Name</th><th>📱 Phone</th><th>Voter ID</th><th>Booth</th><th>Assembly</th><th>Status</th><th>Date</th><th>Actions</th></tr>
+                                <tr><th>ID</th><th>Name</th><th>📱 Phone</th><th>Booth</th><th>Location</th><th>Status</th><th>Date</th><th>Actions</th></tr>
                             </thead>
                             <tbody>
                                 {items.map(v => (
@@ -79,7 +79,13 @@ export default function Volunteers() {
                                         <td><code>{v.phoneNumber}</code></td>
                                         <td>{v.voterId}</td>
                                         <td>{v.partNumber}</td>
-                                        <td>{v.assemblyName}</td>
+                                        <td>
+                                            {v.googleMapsLink ? (
+                                                <a href={v.googleMapsLink} target="_blank" rel="noopener noreferrer" className="location-link" title={v.actualAddress || 'View on Map'}>
+                                                    <MapPin size={16} /> Spot
+                                                </a>
+                                            ) : '—'}
+                                        </td>
                                         <td><span className={`status-badge ${v.status}`}>{v.status}</span></td>
                                         <td>{formatDate(v.createdAt)}</td>
                                         <td>

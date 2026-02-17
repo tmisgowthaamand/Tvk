@@ -902,3 +902,25 @@ textarea.input {
 .modal p strong {
     color: var(--text);
 }
+
+/* ── Location Link ── */
+.location-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: var(--blue-glow);
+    color: var(--blue);
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+.location-link:hover {
+    background: var(--blue);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
