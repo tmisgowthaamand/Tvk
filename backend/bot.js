@@ -147,8 +147,15 @@ To begin, please enter your *EPIC Number* (Voter ID).
 
 Example: *WJB1079656*`;
 
-    // Construct media URL from webhook URL base
-    const baseUrl = process.env.WHATSAPP_WEBHOOK_URL.split('/api')[0];
+    // Construct media URL from webhook URL base (robustly get origin)
+    let baseUrl = process.env.WHATSAPP_WEBHOOK_URL;
+    try {
+        const url = new URL(baseUrl);
+        baseUrl = url.origin;
+    } catch (e) {
+        // Fallback to old logic if URL parsing fails
+        baseUrl = baseUrl.split('/api')[0].split('/webhook')[0];
+    }
 
     // Return single combined image message
     return {
