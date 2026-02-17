@@ -51,7 +51,7 @@ function clearSession(phoneNumber) {
 // ─── Issue Categories ──────────────────────────────────
 const CATEGORIES = {
     '1': 'Water & Drainage',
-    '2': 'Roads & Infrastructure',
+    '2': 'Roads & Infra',
     '3': 'Electricity',
     '4': 'Public Transport',
     '5': 'Education',
@@ -62,10 +62,10 @@ const CATEGORIES = {
 };
 
 const PARTICIPATION_OPTIONS = {
-    '1': 'Volunteer at booth level',
-    '2': 'Help organise local meetings',
-    '3': 'Spread campaign information',
-    '4': 'Be part of future coordination'
+    '1': 'Volunteer @ Booth',
+    '2': 'Organise Meetings',
+    '3': 'Spread Information',
+    '4': 'Future Coordination'
 };
 
 // ─── ID Generators ─────────────────────────────────────
@@ -234,8 +234,8 @@ How would you like to engage today?`;
                                 title: 'Main Menu',
                                 rows: [
                                     { id: '1', title: '🔴 Report local issue', description: 'Report civic or local problems' },
-                                    { id: '2', title: '💡 Share idea/improvement', description: 'Give your ideas' },
-                                    { id: '3', title: '🤝 Support or participate', description: 'Collaborate with us' },
+                                    { id: '2', title: '💡 Ideas & Improvements', description: 'Give your ideas' },
+                                    { id: '3', title: '🤝 Participate', description: 'Collaborate with us' },
                                     { id: '4', title: '📢 Stay informed', description: 'Get campaign updates' }
                                 ]
                             }
