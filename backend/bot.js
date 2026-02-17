@@ -74,7 +74,6 @@ function generateId(prefix) {
     return `${prefix}${num}`;
 }
 
-// ─── Logging ───────────────────────────────────────────
 async function logAction(action, data) {
     try {
         const logs = await getLogsCollection();
@@ -82,6 +81,22 @@ async function logAction(action, data) {
     } catch (e) {
         console.error('Log error:', e.message);
     }
+}
+
+// ─── Reverse Geocoding ─────────────────────────────────
+async function getAddressFromCoords(lat, lng) {
+    if (!process.env.GOOGLE_MAPS_API_KEY) return null;
+    try {
+        const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${process.env.GOOGLE_MAPS_API_KEY}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        if (data.status === 'OK' && data.results.length > 0) {
+            return data.results[0].formatted_address;
+        }
+    } catch (e) {
+        console.error('Geocode error:', e.message);
+    }
+    return null;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -425,6 +440,11 @@ async function handleIssueLocation(session, input, data) {
     const ticketId = generateId('GRV');
 
     try {
+        let actualAddress = null;
+        if (location) {
+            actualAddress = await getAddressFromCoords(location.latitude, location.longitude);
+        }
+
         const collection = await getGrievancesCollection();
         const grievance = {
             voterId: session.verifiedVoter.voterId,
@@ -433,6 +453,7 @@ async function handleIssueLocation(session, input, data) {
             category: session.tempData.category,
             message: session.tempData.description,
             location: location, // { latitude, longitude }
+            actualAddress: actualAddress,
             area: session.verifiedVoter.area,
             district: session.verifiedVoter.district,
             assemblyName: session.verifiedVoter.assemblyName,
@@ -456,12 +477,14 @@ async function handleIssueLocation(session, input, data) {
         // Reset session
         clearSession(session.phoneNumber);
 
+        const locationPart = actualAddress ? `\n📍 *Location:* ${actualAddress}` : '';
+
         return `Thank you, *${session.verifiedVoter.name}*.${location ? ' Your location has been received.' : ''}
 
-Your concern from Booth ${session.verifiedVoter.partNumber} has been recorded.
+Your concern from Booth ${session.verifiedVoter.partNumber} has been recorded.${locationPart}
 
 We are analysing inputs booth-wise to identify recurring problems and priority areas.
-${location ? '*Our team will visit the spot soon to solve the issue.*' : 'Our ward organiser will connect with you shortly.'}
+${location ? '\n*Our team will visit the area soon to solve the issue.*' : '\nOur ward organiser will connect with you shortly.'}
 
 Your participation helps shape structured change in ${session.verifiedVoter.assemblyName || 'N/A'}.
 
