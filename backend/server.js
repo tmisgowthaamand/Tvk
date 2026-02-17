@@ -391,6 +391,7 @@ async function handleWebhookMessage(req, res) {
                 const contactName = contacts?.[0]?.profile?.name || 'Unknown';
 
                 let messageText = '';
+                let messageData = null;
                 if (msg.type === 'text') {
                     messageText = msg.text?.body || '';
                 } else if (msg.type === 'interactive') {
@@ -398,13 +399,19 @@ async function handleWebhookMessage(req, res) {
                         msg.interactive?.list_reply?.id ||
                         msg.interactive?.button_reply?.title ||
                         msg.interactive?.list_reply?.title || '';
+                } else if (msg.type === 'location') {
+                    messageText = '[location]';
+                    messageData = {
+                        latitude: msg.location.latitude,
+                        longitude: msg.location.longitude
+                    };
                 } else {
                     messageText = `[${msg.type} message]`;
                 }
 
-                console.log(`📱 ${contactName} (${phoneNumber}): "${messageText}"`);
+                console.log(`📱 ${contactName} (${phoneNumber}): "${messageText}"${messageData ? ' ' + JSON.stringify(messageData) : ''}`);
 
-                const botResponse = await handleMessage(phoneNumber, messageText);
+                const botResponse = await handleMessage(phoneNumber, messageText, messageData);
 
                 // If bot response is array (multiple messages)
                 if (Array.isArray(botResponse)) {

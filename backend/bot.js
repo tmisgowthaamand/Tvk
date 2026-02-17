@@ -88,7 +88,7 @@ async function logAction(action, data) {
 // MAIN MESSAGE HANDLER
 // ═══════════════════════════════════════════════════════
 
-async function handleMessage(phoneNumber, message) {
+async function handleMessage(phoneNumber, message, data = null) {
     const input = message.trim();
     let session = getSession(phoneNumber);
 
@@ -123,6 +123,9 @@ async function handleMessage(phoneNumber, message) {
 
         case 'ISSUE_DESCRIPTION':
             return await handleIssueDescription(session, input);
+
+        case 'ISSUE_LOCATION':
+            return await handleIssueLocation(session, input, data);
 
         case 'SUGGESTION_TEXT':
             return await handleSuggestionText(session, input);
@@ -390,6 +393,35 @@ async function handleIssueDescription(session, input) {
         return `⚠️ Your message is too long (${input.length} characters). Please keep it under 250 characters.`;
     }
 
+    session.tempData.description = messageContent;
+    session.step = 'ISSUE_LOCATION';
+
+    const locMsg = `To help us identify the exact spot and resolve it faster, please share the location of the issue (Pin or Live Location).
+
+You may also type *SKIP* or use the button below.`;
+
+    return {
+        type: 'interactive',
+        interactive: {
+            type: 'button',
+            body: { text: locMsg },
+            action: {
+                buttons: [
+                    { type: 'reply', reply: { id: 'SKIP', title: 'SKIP' } }
+                ]
+            }
+        }
+    };
+}
+
+async function handleIssueLocation(session, input, data) {
+    const isSkip = input.toUpperCase() === 'SKIP';
+    const location = isSkip ? null : data;
+
+    if (!isSkip && input !== '[location]') {
+        return `Please share your location (Pin or Live Location) or type *SKIP*.`;
+    }
+
     const ticketId = generateId('GRV');
 
     try {
@@ -399,7 +431,8 @@ async function handleIssueDescription(session, input) {
             voterName: session.verifiedVoter.name,
             phoneNumber: session.phoneNumber,
             category: session.tempData.category,
-            message: input,
+            message: session.tempData.description,
+            location: location, // { latitude, longitude }
             area: session.verifiedVoter.area,
             district: session.verifiedVoter.district,
             assemblyName: session.verifiedVoter.assemblyName,
@@ -416,19 +449,19 @@ async function handleIssueDescription(session, input) {
             phoneNumber: session.phoneNumber,
             voterId: session.verifiedVoter.voterId,
             ticketId,
-            category: session.tempData.category
+            category: session.tempData.category,
+            hasLocation: !!location
         });
 
         // Reset session
         clearSession(session.phoneNumber);
 
-        return `Thank you, *${session.verifiedVoter.name}*.
+        return `Thank you, *${session.verifiedVoter.name}*.${location ? ' Your location has been received.' : ''}
 
 Your concern from Booth ${session.verifiedVoter.partNumber} has been recorded.
 
 We are analysing inputs booth-wise to identify recurring problems and priority areas.
-
-Our ward organiser will connect with you shortly.
+${location ? '*Our team will visit the spot soon to solve the issue.*' : 'Our ward organiser will connect with you shortly.'}
 
 Your participation helps shape structured change in ${session.verifiedVoter.assemblyName || 'N/A'}.
 
