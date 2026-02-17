@@ -453,6 +453,9 @@ async function handleIssueLocation(session, input, data) {
             category: session.tempData.category,
             message: session.tempData.description,
             location: location, // { latitude, longitude }
+            latitude: location ? location.latitude : null,
+            longitude: location ? location.longitude : null,
+            googleMapsLink: location ? `https://www.google.com/maps?q=${location.latitude},${location.longitude}` : null,
             actualAddress: actualAddress,
             area: session.verifiedVoter.area,
             district: session.verifiedVoter.district,
@@ -471,24 +474,31 @@ async function handleIssueLocation(session, input, data) {
             voterId: session.verifiedVoter.voterId,
             ticketId,
             category: session.tempData.category,
-            hasLocation: !!location
+            hasLocation: !!location,
+            latitude: location?.latitude,
+            longitude: location?.longitude
         });
 
         // Reset session
         clearSession(session.phoneNumber);
 
-        const locationPart = actualAddress ? `\n📍 *Location:* ${actualAddress}` : '';
+        const locationPart = actualAddress ? `\n📍 *Exact Spot:* ${actualAddress}` : '';
 
-        return `Thank you, *${session.verifiedVoter.name}*.${location ? ' Your location has been received.' : ''}
+        let responseMsg = `Thank you, *${session.verifiedVoter.name}*.
 
-Your concern from Booth ${session.verifiedVoter.partNumber} has been recorded.${locationPart}
+Your concern from Booth ${session.verifiedVoter.partNumber} has been successfully recorded.`;
 
-We are analysing inputs booth-wise to identify recurring problems and priority areas.
-${location ? '\n*Our team will visit the area soon to solve the issue.*' : '\nOur ward organiser will connect with you shortly.'}
+        if (location) {
+            responseMsg += `\n\n✅ *Location Received:* ${locationPart}\n\n*Our field team will visit this spot soon to verify and solve the issue.*`;
+        } else {
+            responseMsg += `\n\nOur ward organiser will connect with you shortly for further details.`;
+        }
 
-Your participation helps shape structured change in ${session.verifiedVoter.assemblyName || 'N/A'}.
+        responseMsg += `\n\nYour active participation helps us build a better ${session.verifiedVoter.assemblyName || 'constituency'}.
 
 _Send *Hi* anytime to start again._`;
+
+        return responseMsg;
     } catch (error) {
         console.error('Grievance error:', error);
         return `⚠️ *System Error*\n\nPlease try again.`;
