@@ -61,6 +61,13 @@ const CATEGORIES = {
     '9': 'Others'
 };
 
+const PARTICIPATION_OPTIONS = {
+    '1': 'Volunteer at booth level',
+    '2': 'Help organise local meetings',
+    '3': 'Spread campaign information',
+    '4': 'Be part of future coordination'
+};
+
 // ─── ID Generators ─────────────────────────────────────
 function generateId(prefix) {
     const num = Math.floor(10000 + Math.random() * 90000);
@@ -120,6 +127,9 @@ async function handleMessage(phoneNumber, message) {
         case 'SUGGESTION_TEXT':
             return await handleSuggestionText(session, input);
 
+        case 'PARTICIPATION_TYPE':
+            return await handleParticipationType(session, input);
+
         default:
             session.step = 'ASK_EPIC';
             return getWelcomeMessage();
@@ -131,21 +141,15 @@ async function handleMessage(phoneNumber, message) {
 // ═══════════════════════════════════════════════════════
 
 function getWelcomeMessage() {
-    const textMsg = `🌟 *TAMILAGA VETTRI KAZHAGAM* 🌟
-🚩 *Kavundampalayam Constituency* 🚩
+    const textMsg = `Vanakkam 🙏
 
-*Vanakkam* 🙏
+This is the official WhatsApp of *Venkatraman*, TVK Candidate – *Kavundampalayam*.
 
-This is the official WhatsApp of *Venkatraman*
-(TVK Candidate — Kavundampalayam)
+We are building a structured, booth-level understanding of issues in this constituency so that future priorities are based on real voter input.
 
----
-"I want to stay directly connected with every voter in our constituency to build a better future together."
----
+To continue, please enter your *EPIC number* (Voter ID number).
 
-To begin, please enter your *EPIC Number* (Voter ID).
-
-Example: *WJB1079656*`;
+Example: *ABC1234567*`;
 
     // Construct media URL from webhook URL base (robustly get origin)
     let baseUrl = process.env.WHATSAPP_WEBHOOK_URL;
@@ -173,11 +177,8 @@ async function handleEpicVerification(session, input) {
     const voterId = input.toUpperCase().trim();
 
     // Validate format (alphanumeric, 6-12 characters)
-    if (!/^[A-Z0-9]{6,12}$/.test(voterId)) {
-        return `❌ *Invalid EPIC number format.*
-
-Please enter a valid EPIC number (Voter ID).
-Example: *WJB1079656*`;
+    if (!/^[A-Z0-9]{6,15}$/.test(voterId)) {
+        return `Please enter a valid EPIC number in the correct format.\nExample: *ABC1234567*`;
     }
 
     try {
@@ -200,44 +201,53 @@ Example: *WJB1079656*`;
                 district: voter.district,
                 assemblyName: voter.assemblyName,
                 partNumber: voter.partNumber,
-                relationName: voter.relationName
+                relationName: voter.relationName,
+                parliamentName: voter.parliamentName
             };
             session.step = 'VERIFIED_MENU';
 
-            return [
-                {
-                    type: 'text',
-                    text: `✅ *Verification Successful*\n\n👤 *Name:* ${voter.name}\n📍 *Booth:* ${voter.partNumber || 'N/A'}\n🏛️ *Assembly:* ${voter.assemblyName || 'N/A'}`
-                },
-                {
-                    type: 'interactive',
-                    interactive: {
-                        type: 'list',
-                        header: { type: 'text', text: 'Main Menu' },
-                        body: { text: 'How would you like to connect with us?' },
-                        footer: { text: 'TVK Voter Support' },
-                        action: {
-                            button: 'Select Option',
-                            sections: [
-                                {
-                                    title: 'Available Services',
-                                    rows: [
-                                        { id: '1', title: '🔴 Raise an Issue', description: 'Report civic or local problems' },
-                                        { id: '2', title: '💡 Share Suggestion', description: 'Give your ideas for improvement' },
-                                        { id: '3', title: '🤝 Volunteer with Us', description: 'Register as a TVK volunteer' },
-                                        { id: '4', title: '📢 Campaign Updates', description: 'Subscribe to our latest news' }
-                                    ]
-                                }
-                            ]
-                        }
+            const welcomeVerified = `Thank you, *${voter.name}*.
+
+We have identified you as a voter from:
+
+📍 *Booth:* ${voter.partNumber || 'N/A'}
+🏛️ *Assembly:* ${voter.assemblyName || 'N/A'}
+🏛️ *Parliament:* ${voter.parliamentName || 'N/A'}
+
+We are documenting concerns booth-wise so that real priorities are shaped by people like you.
+
+This system is designed to ensure that each booth’s voice is heard clearly and documented responsibly.
+
+How would you like to engage today?`;
+
+            return {
+                type: 'interactive',
+                interactive: {
+                    type: 'list',
+                    header: { type: 'text', text: 'Voter Engagement' },
+                    body: { text: welcomeVerified },
+                    footer: { text: 'TVK Voter Support' },
+                    action: {
+                        button: 'Select Option',
+                        sections: [
+                            {
+                                title: 'Main Menu',
+                                rows: [
+                                    { id: '1', title: '🔴 Report local issue', description: 'Report civic or local problems' },
+                                    { id: '2', title: '💡 Share idea/improvement', description: 'Give your ideas' },
+                                    { id: '3', title: '🤝 Support or participate', description: 'Collaborate with us' },
+                                    { id: '4', title: '📢 Stay informed', description: 'Get campaign updates' }
+                                ]
+                            }
+                        ]
                     }
                 }
-            ];
+            };
         } else {
-            return `❌ *EPIC number not found in our database.*
+            return `We could not locate this EPIC number in our constituency records.
 
-Please check your Voter ID and try again.
-Example: *WJB1079656*`;
+Please verify and enter again.
+If you believe this is an error, you may contact your booth-level representative.`;
         }
     } catch (error) {
         console.error('Verification error:', error);
@@ -253,12 +263,15 @@ function handleMainMenu(session, input) {
     switch (input) {
         case '1':
             session.step = 'ISSUE_CATEGORY';
+            const welcomeIssue = `Thank you, *${session.verifiedVoter.name}*.
+
+Please select the area where you are facing a concern:`;
             return {
                 type: 'interactive',
                 interactive: {
                     type: 'list',
                     header: { type: 'text', text: '📝 Report an Issue' },
-                    body: { text: 'Select the category that best describes your concern.' },
+                    body: { text: welcomeIssue },
                     footer: { text: 'TVK Voter Support' },
                     action: {
                         button: 'Select Category',
@@ -278,12 +291,33 @@ function handleMainMenu(session, input) {
 
         case '2':
             session.step = 'SUGGESTION_TEXT';
-            return `💡 *Share a Suggestion*
+            return `We believe strong constituencies are built not just by solving issues, but by listening to constructive ideas.
 
-Please share your suggestion in less than 250 characters.`;
+Please share your suggestion in up to 250 characters.`;
 
         case '3':
-            return handleVolunteer(session);
+            session.step = 'PARTICIPATION_TYPE';
+            return {
+                type: 'interactive',
+                interactive: {
+                    type: 'list',
+                    header: { type: 'text', text: '🤝 Participate' },
+                    body: { text: `That’s encouraging to hear, *${session.verifiedVoter.name}*.\n\nHow would you like to participate?` },
+                    footer: { text: 'TVK Voter Support' },
+                    action: {
+                        button: 'Select Mode',
+                        sections: [
+                            {
+                                title: 'Options',
+                                rows: Object.entries(PARTICIPATION_OPTIONS).map(([id, title]) => ({
+                                    id: id,
+                                    title: title
+                                }))
+                            }
+                        ]
+                    }
+                }
+            };
 
         case '4':
             return handleCampaignUpdates(session);
@@ -324,17 +358,35 @@ function handleIssueCategory(session, input) {
     session.tempData.category = category;
     session.step = 'ISSUE_DESCRIPTION';
 
-    return `📝 *Category:* ${category}
+    const msg = `Please describe the situation briefly (up to 250 characters).
 
-Please describe your issue in detail (max 250 characters).`;
+Specific details help us understand recurring patterns in your booth.
+
+You may also type *SKIP*.`;
+
+    return {
+        type: 'interactive',
+        interactive: {
+            type: 'button',
+            body: { text: msg },
+            action: {
+                buttons: [
+                    { type: 'reply', reply: { id: 'SKIP', title: 'SKIP' } }
+                ]
+            }
+        }
+    };
 }
 
 async function handleIssueDescription(session, input) {
-    if (input.length < 5) {
-        return `⚠️ Please provide more detail about your issue (at least 5 characters).`;
+    const isSkip = input.toUpperCase() === 'SKIP';
+    const messageContent = isSkip ? 'SKIPPED' : input;
+
+    if (!isSkip && input.length < 3) {
+        return `⚠️ Please provide more detail or type *SKIP*.`;
     }
 
-    if (input.length > 250) {
+    if (!isSkip && input.length > 250) {
         return `⚠️ Your message is too long (${input.length} characters). Please keep it under 250 characters.`;
     }
 
@@ -370,12 +422,15 @@ async function handleIssueDescription(session, input) {
         // Reset session
         clearSession(session.phoneNumber);
 
-        return `✅ *Thank you for sharing your concern.*
+        return `Thank you, *${session.verifiedVoter.name}*.
 
-📋 *Category:* ${session.tempData.category}
-🎫 *Ticket ID:* ${ticketId}
+Your concern from Booth ${session.verifiedVoter.partNumber} has been recorded.
 
-Your grievances are taken seriously and our ward member or organiser will get in touch with you shortly.
+We are analysing inputs booth-wise to identify recurring problems and priority areas.
+
+Our ward organiser will connect with you shortly.
+
+Your participation helps shape structured change in ${session.verifiedVoter.assemblyName || 'N/A'}.
 
 _Send *Hi* anytime to start again._`;
     } catch (error) {
@@ -426,11 +481,11 @@ async function handleSuggestionText(session, input) {
 
         clearSession(session.phoneNumber);
 
-        return `✅ *Thank you for your valuable suggestion.*
+        return `Thank you, *${session.verifiedVoter.name}*.
 
-📝 *Suggestion ID:* ${suggestionId}
+Your suggestion from Booth ${session.verifiedVoter.partNumber} has been noted.
 
-Our ward member or organiser will get in touch with you shortly if required.
+All ideas are reviewed collectively to guide long-term planning for ${session.verifiedVoter.assemblyName || 'N/A'}.
 
 _Send *Hi* anytime to start again._`;
     } catch (error) {
@@ -443,22 +498,12 @@ _Send *Hi* anytime to start again._`;
 // OPTION 3: VOLUNTEER
 // ═══════════════════════════════════════════════════════
 
-async function handleVolunteer(session) {
+async function handleParticipationType(session, input) {
+    const type = PARTICIPATION_OPTIONS[input] || input;
     const volunteerId = generateId('VOL');
 
     try {
         const collection = await getVolunteersCollection();
-
-        // Check if already registered
-        const existing = await collection.findOne({ phoneNumber: session.phoneNumber });
-        if (existing) {
-            clearSession(session.phoneNumber);
-            return `✅ You are already registered as a volunteer! (ID: ${existing.volunteerId})
-
-Our booth or ward organiser will get in touch with you shortly.
-
-_Send *Hi* anytime to start again._`;
-        }
 
         const volunteer = {
             voterId: session.verifiedVoter.voterId,
@@ -468,6 +513,8 @@ _Send *Hi* anytime to start again._`;
             district: session.verifiedVoter.district,
             assemblyName: session.verifiedVoter.assemblyName,
             partNumber: session.verifiedVoter.partNumber,
+            parliamentName: session.verifiedVoter.parliamentName,
+            participationType: type,
             status: 'Pending',
             volunteerId,
             createdAt: new Date(),
@@ -475,24 +522,20 @@ _Send *Hi* anytime to start again._`;
         };
 
         await collection.insertOne(volunteer);
-
         await logAction('volunteer_registered', {
             phoneNumber: session.phoneNumber,
-            voterId: session.verifiedVoter.voterId,
-            volunteerId
+            type
         });
 
         clearSession(session.phoneNumber);
 
-        return `✅ *Thank you for your interest in volunteering with TVK.*
+        return `Thank you.
 
-🤝 *Volunteer ID:* ${volunteerId}
-
-Our booth or ward organiser will get in touch with you shortly.
+Our organiser from Booth ${session.verifiedVoter.partNumber} will contact you with next steps.
 
 _Send *Hi* anytime to start again._`;
     } catch (error) {
-        console.error('Volunteer error:', error);
+        console.error('Participation error:', error);
         return `⚠️ *System Error*\n\nPlease try again.`;
     }
 }
@@ -542,11 +585,9 @@ _Send *Hi* anytime to start again._`;
 
         clearSession(session.phoneNumber);
 
-        return `✅ *Thank you.*
+        return `You will receive updates relevant to Booth ${session.verifiedVoter.partNumber} and ${session.verifiedVoter.assemblyName || 'N/A'}.
 
-📢 *Subscriber ID:* ${subId}
-
-You will receive campaign updates from us. Our booth or ward organiser will get in touch with you shortly.
+We aim to keep communication transparent and focused on constituency priorities.
 
 _Send *Hi* anytime to start again._`;
     } catch (error) {
