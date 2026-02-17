@@ -145,8 +145,17 @@ async function handleMessage(phoneNumber, message, data = null) {
         case 'SUGGESTION_TEXT':
             return await handleSuggestionText(session, input);
 
+        case 'SUGGESTION_LOCATION':
+            return await handleSuggestionLocation(session, input, data);
+
         case 'PARTICIPATION_TYPE':
             return await handleParticipationType(session, input);
+
+        case 'VOLUNTEER_LOCATION':
+            return await handleVolunteerLocation(session, input, data);
+
+        case 'STAY_INFORMED_LOCATION':
+            return await handleStayInformedLocation(session, input, data);
 
         default:
             session.step = 'ASK_EPIC';
@@ -338,7 +347,22 @@ Please share your suggestion in up to 250 characters.`;
             };
 
         case '4':
-            return handleCampaignUpdates(session);
+            session.step = 'STAY_INFORMED_LOCATION';
+            const stayLocMsg = `Please share your location (Pin or Live Location) to receive updates specific to your area.
+
+You may also type *SKIP* or use the button below.`;
+            return {
+                type: 'interactive',
+                interactive: {
+                    type: 'button',
+                    body: { text: stayLocMsg },
+                    action: {
+                        buttons: [
+                            { type: 'reply', reply: { id: 'SKIP', title: 'SKIP' } }
+                        ]
+                    }
+                }
+            };
 
         default:
             return `❓ Please reply with a valid option:
@@ -518,15 +542,54 @@ async function handleSuggestionText(session, input) {
         return `⚠️ Your suggestion is too long (${input.length} characters). Please keep it under 250 characters.`;
     }
 
+    session.tempData.suggestion = input;
+    session.step = 'SUGGESTION_LOCATION';
+
+    const sugLocMsg = `Please share the location related to your suggestion (Pin or Live Location) so we can understand the context better.
+
+You may also type *SKIP* or use the button below.`;
+
+    return {
+        type: 'interactive',
+        interactive: {
+            type: 'button',
+            body: { text: sugLocMsg },
+            action: {
+                buttons: [
+                    { type: 'reply', reply: { id: 'SKIP', title: 'SKIP' } }
+                ]
+            }
+        }
+    };
+}
+
+async function handleSuggestionLocation(session, input, data) {
+    const isSkip = input.toUpperCase() === 'SKIP';
+    const location = isSkip ? null : data;
+
+    if (!isSkip && input !== '[location]') {
+        return `Please share a location (Pin or Live Location) or type *SKIP*.`;
+    }
+
     const suggestionId = generateId('SUG');
 
     try {
+        let actualAddress = null;
+        if (location) {
+            actualAddress = await getAddressFromCoords(location.latitude, location.longitude);
+        }
+
         const collection = await getSuggestionsCollection();
         const suggestion = {
             voterId: session.verifiedVoter.voterId,
             voterName: session.verifiedVoter.name,
             phoneNumber: session.phoneNumber,
-            message: input,
+            message: session.tempData.suggestion,
+            location: location,
+            latitude: location ? location.latitude : null,
+            longitude: location ? location.longitude : null,
+            googleMapsLink: location ? `https://www.google.com/maps?q=${location.latitude},${location.longitude}` : null,
+            actualAddress: actualAddress,
             area: session.verifiedVoter.area,
             district: session.verifiedVoter.district,
             assemblyName: session.verifiedVoter.assemblyName,
@@ -542,16 +605,20 @@ async function handleSuggestionText(session, input) {
         await logAction('suggestion_created', {
             phoneNumber: session.phoneNumber,
             voterId: session.verifiedVoter.voterId,
-            suggestionId
+            suggestionId,
+            hasLocation: !!location
         });
 
         clearSession(session.phoneNumber);
 
-        return `Thank you, *${session.verifiedVoter.name}*.
+        const locationPart = actualAddress ? `\n📍 *Location:* ${actualAddress}` : '';
 
-Your suggestion from Booth ${session.verifiedVoter.partNumber} has been noted.
+        return `Thank you, *${session.verifiedVoter.name}*.${location ? ' Your location has been noted.' : ''}
+
+Your suggestion from Booth ${session.verifiedVoter.partNumber} has been recorded.${locationPart}
 
 All ideas are reviewed collectively to guide long-term planning for ${session.verifiedVoter.assemblyName || 'N/A'}.
+${location ? '\n*Our team will visit the area soon to evaluate this.*' : ''}
 
 _Send *Hi* anytime to start again._`;
     } catch (error) {
@@ -564,11 +631,45 @@ _Send *Hi* anytime to start again._`;
 // OPTION 3: VOLUNTEER
 // ═══════════════════════════════════════════════════════
 
-async function handleParticipationType(session, input) {
+function handleParticipationType(session, input) {
     const type = PARTICIPATION_OPTIONS[input] || input;
+    session.tempData.participationType = type;
+    session.step = 'VOLUNTEER_LOCATION';
+
+    const volLocMsg = `Please share your location (Pin or Live Location) so our local organiser can reach you easily.
+
+You may also type *SKIP* or use the button below.`;
+
+    return {
+        type: 'interactive',
+        interactive: {
+            type: 'button',
+            body: { text: volLocMsg },
+            action: {
+                buttons: [
+                    { type: 'reply', reply: { id: 'SKIP', title: 'SKIP' } }
+                ]
+            }
+        }
+    };
+}
+
+async function handleVolunteerLocation(session, input, data) {
+    const isSkip = input.toUpperCase() === 'SKIP';
+    const location = isSkip ? null : data;
+
+    if (!isSkip && input !== '[location]') {
+        return `Please share your location (Pin or Live Location) or type *SKIP*.`;
+    }
+
     const volunteerId = generateId('VOL');
 
     try {
+        let actualAddress = null;
+        if (location) {
+            actualAddress = await getAddressFromCoords(location.latitude, location.longitude);
+        }
+
         const collection = await getVolunteersCollection();
 
         const volunteer = {
@@ -580,7 +681,12 @@ async function handleParticipationType(session, input) {
             assemblyName: session.verifiedVoter.assemblyName,
             partNumber: session.verifiedVoter.partNumber,
             parliamentName: session.verifiedVoter.parliamentName,
-            participationType: type,
+            participationType: session.tempData.participationType,
+            location: location,
+            latitude: location ? location.latitude : null,
+            longitude: location ? location.longitude : null,
+            googleMapsLink: location ? `https://www.google.com/maps?q=${location.latitude},${location.longitude}` : null,
+            actualAddress: actualAddress,
             status: 'Pending',
             volunteerId,
             createdAt: new Date(),
@@ -590,14 +696,19 @@ async function handleParticipationType(session, input) {
         await collection.insertOne(volunteer);
         await logAction('volunteer_registered', {
             phoneNumber: session.phoneNumber,
-            type
+            type: session.tempData.participationType,
+            hasLocation: !!location
         });
 
         clearSession(session.phoneNumber);
 
-        return `Thank you.
+        const locationPart = actualAddress ? `\n📍 *Location:* ${actualAddress}` : '';
 
-Our organiser from Booth ${session.verifiedVoter.partNumber} will contact you with next steps.
+        return `Thank you, *${session.verifiedVoter.name}*.${location ? ' Your location has been recorded.' : ''}
+
+Our organiser from Booth ${session.verifiedVoter.partNumber} will contact you with next steps.${locationPart}
+
+*Our team will connect with you soon at your booth.*
 
 _Send *Hi* anytime to start again._`;
     } catch (error) {
@@ -610,27 +721,33 @@ _Send *Hi* anytime to start again._`;
 // OPTION 4: CAMPAIGN UPDATES
 // ═══════════════════════════════════════════════════════
 
-async function handleCampaignUpdates(session) {
+async function handleStayInformedLocation(session, input, data) {
+    const isSkip = input.toUpperCase() === 'SKIP';
+    const location = isSkip ? null : data;
+
+    if (!isSkip && input !== '[location]') {
+        return `Please share your location (Pin or Live Location) or type *SKIP*.`;
+    }
+
     const subId = generateId('SUB');
 
     try {
-        const collection = await getSubscribersCollection();
-
-        // Check if already subscribed
-        const existing = await collection.findOne({ phoneNumber: session.phoneNumber });
-        if (existing) {
-            clearSession(session.phoneNumber);
-            return `✅ You are already subscribed to campaign updates!
-
-Our booth or ward organiser will get in touch with you shortly.
-
-_Send *Hi* anytime to start again._`;
+        let actualAddress = null;
+        if (location) {
+            actualAddress = await getAddressFromCoords(location.latitude, location.longitude);
         }
+
+        const collection = await getSubscribersCollection();
 
         const subscriber = {
             voterId: session.verifiedVoter.voterId,
             voterName: session.verifiedVoter.name,
             phoneNumber: session.phoneNumber,
+            location: location,
+            latitude: location ? location.latitude : null,
+            longitude: location ? location.longitude : null,
+            googleMapsLink: location ? `https://www.google.com/maps?q=${location.latitude},${location.longitude}` : null,
+            actualAddress: actualAddress,
             area: session.verifiedVoter.area,
             district: session.verifiedVoter.district,
             assemblyName: session.verifiedVoter.assemblyName,
@@ -646,14 +763,20 @@ _Send *Hi* anytime to start again._`;
         await logAction('subscriber_registered', {
             phoneNumber: session.phoneNumber,
             voterId: session.verifiedVoter.voterId,
-            subscriberId: subId
+            subscriberId: subId,
+            hasLocation: !!location
         });
 
         clearSession(session.phoneNumber);
 
-        return `You will receive updates relevant to Booth ${session.verifiedVoter.partNumber} and ${session.verifiedVoter.assemblyName || 'N/A'}.
+        const locationPart = actualAddress ? `\n📍 *Location:* ${actualAddress}` : '';
+
+        return `Thank you, *${session.verifiedVoter.name}*.${location ? ' Your location has been received.' : ''}
+
+You will receive updates relevant to Booth ${session.verifiedVoter.partNumber} and ${session.verifiedVoter.assemblyName || 'N/A'}.${locationPart}
 
 We aim to keep communication transparent and focused on constituency priorities.
+*Our team will reach out to you soon.*
 
 _Send *Hi* anytime to start again._`;
     } catch (error) {
