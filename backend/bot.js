@@ -450,7 +450,7 @@ async function handleIssueDescription(session, input) {
     session.tempData.description = messageContent;
     session.step = 'ISSUE_LOCATION';
 
-    const thankYouMsg = `Thank you! 🙏`;
+    const thankYouMsg = `Thank you, *${session.verifiedVoter.name}*.\n\nYour concern from Booth ${session.verifiedVoter.partNumber} has been successfully recorded.\n\nOur ward organiser will connect with you shortly for further details.\n\nYour active participation helps us build a better ${session.verifiedVoter.assemblyName || 'Kavundampalayam'}.`;
     const locMsg = `To help us identify the exact spot and resolve it faster, please share the location of the issue (Pin or Live Location).\n\nYou may also type *SKIP* or use the button below.`;
 
     let baseUrl = process.env.WHATSAPP_WEBHOOK_URL;
@@ -538,20 +538,14 @@ async function handleIssueLocation(session, input, data) {
         // Reset session
         clearSession(session.phoneNumber);
 
-        let responseMsg = `Thank you, *${session.verifiedVoter.name}*.
-
-Your concern from Booth ${session.verifiedVoter.partNumber} has been successfully recorded.
-
-Our ward organiser will connect with you shortly for further details.
-
-Your active participation helps us build a better ${session.verifiedVoter.assemblyName || 'Kavundampalayam'}.`;
+        let responseMsg = '';
 
         if (location) {
             const locationPart = actualAddress ? ` ${actualAddress}` : '';
-            responseMsg += `\n\n✅ *Location Received:*${locationPart}`;
+            responseMsg += `✅ *Location Received:*${locationPart}\n\n*Our field team will visit this spot soon to verify and solve the issue.*\n\n`;
         }
 
-        responseMsg += `\n\n_Send *Hi* anytime to start again._`;
+        responseMsg += `_Send *Hi* anytime to start again._`;
 
         return responseMsg;
     } catch (error) {
