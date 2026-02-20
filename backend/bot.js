@@ -542,14 +542,27 @@ async function handleIssueLocation(session, input, data) {
         // Reset session
         clearSession(session.phoneNumber);
 
-        let responseMsg = '';
-
         if (location) {
+            let baseUrl = process.env.WHATSAPP_WEBHOOK_URL;
+            try {
+                const url = new URL(baseUrl);
+                baseUrl = url.origin;
+            } catch (e) {
+                baseUrl = baseUrl ? baseUrl.split('/api')[0].split('/webhook')[0] : '';
+            }
+
             const locationPart = actualAddress ? ` ${actualAddress}` : '';
-            responseMsg += `✅ *Location Received:*${locationPart}\n\n*Our field team will visit this spot soon to verify and solve the issue.*\n\n`;
+            let locationMsg = `✅ *Location Received:*${locationPart}\n\n*Our field team will visit this spot soon to verify and solve the issue.*\n\n`;
+            locationMsg += `_Send *Hi* anytime to start again._`;
+
+            return {
+                type: 'image',
+                link: `${baseUrl}/assets/location_received.png`,
+                caption: locationMsg
+            };
         }
 
-        responseMsg += `_Send *Hi* anytime to start again._`;
+        let responseMsg = `_Send *Hi* anytime to start again._`;
 
         return responseMsg;
     } catch (error) {
