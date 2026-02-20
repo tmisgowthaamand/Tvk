@@ -454,10 +454,24 @@ async function handleIssueDescription(session, input) {
 
 You may also type *SKIP* or use the button below.`;
 
+    let baseUrl = process.env.WHATSAPP_WEBHOOK_URL;
+    try {
+        const url = new URL(baseUrl);
+        baseUrl = url.origin;
+    } catch (e) {
+        baseUrl = baseUrl ? baseUrl.split('/api')[0].split('/webhook')[0] : '';
+    }
+
     return {
         type: 'interactive',
         interactive: {
             type: 'button',
+            header: {
+                type: 'image',
+                image: {
+                    link: `${baseUrl}/assets/location.png`
+                }
+            },
             body: { text: locMsg },
             action: {
                 buttons: [
