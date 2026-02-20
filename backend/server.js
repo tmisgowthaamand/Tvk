@@ -449,7 +449,11 @@ async function sendWhatsAppMessage(to, content) {
         const token = process.env.WHATSAPP_API_TOKEN;
         const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
 
-        // Determine if content is string (text) or object (templated/image)
+        if (content && typeof content === 'object' && content.type === 'delay') {
+            await new Promise(resolve => setTimeout(resolve, content.ms || 2000));
+            return;
+        }
+
         let payload = {
             messaging_product: 'whatsapp',
             recipient_type: 'individual',

@@ -450,7 +450,8 @@ async function handleIssueDescription(session, input) {
     session.tempData.description = messageContent;
     session.step = 'ISSUE_LOCATION';
 
-    const locMsg = `Thank you! 🙏\n\nTo help us identify the exact spot and resolve it faster, please share the location of the issue (Pin or Live Location).\n\nYou may also type *SKIP* or use the button below.`;
+    const thankYouMsg = `Thank you! 🙏`;
+    const locMsg = `To help us identify the exact spot and resolve it faster, please share the location of the issue (Pin or Live Location).\n\nYou may also type *SKIP* or use the button below.`;
 
     let baseUrl = process.env.WHATSAPP_WEBHOOK_URL;
     try {
@@ -460,24 +461,28 @@ async function handleIssueDescription(session, input) {
         baseUrl = baseUrl ? baseUrl.split('/api')[0].split('/webhook')[0] : '';
     }
 
-    return {
-        type: 'interactive',
-        interactive: {
-            type: 'button',
-            header: {
-                type: 'image',
-                image: {
-                    link: `${baseUrl}/assets/location.png`
+    return [
+        thankYouMsg,
+        { type: 'delay', ms: 2000 },
+        {
+            type: 'interactive',
+            interactive: {
+                type: 'button',
+                header: {
+                    type: 'image',
+                    image: {
+                        link: `${baseUrl}/assets/location.png`
+                    }
+                },
+                body: { text: locMsg },
+                action: {
+                    buttons: [
+                        { type: 'reply', reply: { id: 'SKIP', title: 'SKIP' } }
+                    ]
                 }
-            },
-            body: { text: locMsg },
-            action: {
-                buttons: [
-                    { type: 'reply', reply: { id: 'SKIP', title: 'SKIP' } }
-                ]
             }
         }
-    };
+    ];
 }
 
 async function handleIssueLocation(session, input, data) {
