@@ -360,13 +360,26 @@ Please select the area where you are facing a concern:`;
 
         case '4':
             session.step = 'STAY_INFORMED_LOCATION';
-            const stayLocMsg = `Please share your location (Pin or Live Location) to receive updates specific to your area.
+            const stayLocMsg = `Please share your location (Pin or Live Location) to receive updates specific to your area.\n\nYou may also type *SKIP* or use the button below.`;
 
-You may also type *SKIP* or use the button below.`;
+            let stayBaseUrl = process.env.WHATSAPP_WEBHOOK_URL;
+            try {
+                const url = new URL(stayBaseUrl);
+                stayBaseUrl = url.origin;
+            } catch (e) {
+                stayBaseUrl = stayBaseUrl ? stayBaseUrl.split('/api')[0].split('/webhook')[0] : '';
+            }
+
             return {
                 type: 'interactive',
                 interactive: {
                     type: 'button',
+                    header: {
+                        type: 'image',
+                        image: {
+                            link: `${stayBaseUrl}/assets/location.png`
+                        }
+                    },
                     body: { text: stayLocMsg },
                     action: {
                         buttons: [
@@ -599,14 +612,26 @@ async function handleSuggestionText(session, input) {
     session.tempData.suggestion = input;
     session.step = 'SUGGESTION_LOCATION';
 
-    const sugLocMsg = `Please share the location related to your suggestion (Pin or Live Location) so we can understand the context better.
+    const sugLocMsg = `Please share the location related to your suggestion (Pin or Live Location) so we can understand the context better.\n\nYou may also type *SKIP* or use the button below.`;
 
-You may also type *SKIP* or use the button below.`;
+    let baseUrl = process.env.WHATSAPP_WEBHOOK_URL;
+    try {
+        const url = new URL(baseUrl);
+        baseUrl = url.origin;
+    } catch (e) {
+        baseUrl = baseUrl ? baseUrl.split('/api')[0].split('/webhook')[0] : '';
+    }
 
     return {
         type: 'interactive',
         interactive: {
             type: 'button',
+            header: {
+                type: 'image',
+                image: {
+                    link: `${baseUrl}/assets/location.png`
+                }
+            },
             body: { text: sugLocMsg },
             action: {
                 buttons: [
@@ -690,14 +715,26 @@ function handleParticipationType(session, input) {
     session.tempData.participationType = type;
     session.step = 'VOLUNTEER_LOCATION';
 
-    const volLocMsg = `Please share your location (Pin or Live Location) so our local organiser can reach you easily.
+    const volLocMsg = `Please share your location (Pin or Live Location) so our local organiser can reach you easily.\n\nYou may also type *SKIP* or use the button below.`;
 
-You may also type *SKIP* or use the button below.`;
+    let baseUrl = process.env.WHATSAPP_WEBHOOK_URL;
+    try {
+        const url = new URL(baseUrl);
+        baseUrl = url.origin;
+    } catch (e) {
+        baseUrl = baseUrl ? baseUrl.split('/api')[0].split('/webhook')[0] : '';
+    }
 
     return {
         type: 'interactive',
         interactive: {
             type: 'button',
+            header: {
+                type: 'image',
+                image: {
+                    link: `${baseUrl}/assets/location.png`
+                }
+            },
             body: { text: volLocMsg },
             action: {
                 buttons: [
