@@ -711,7 +711,7 @@ _Send *Hi* anytime to start again._`;
 
         return {
             type: 'image',
-            link: `${baseUrl}/assets/thank_you.png`,
+            link: location ? `${baseUrl}/assets/location_received.png` : `${baseUrl}/assets/thank_you.png`,
             caption: finalMsg
         };
     } catch (error) {
@@ -827,7 +827,7 @@ _Send *Hi* anytime to start again._`;
 
         return {
             type: 'image',
-            link: `${baseUrl}/assets/thank_you.png`,
+            link: location ? `${baseUrl}/assets/location_received.png` : `${baseUrl}/assets/thank_you.png`,
             caption: finalMsg
         };
     } catch (error) {
@@ -909,7 +909,7 @@ _Send *Hi* anytime to start again._`;
 
         return {
             type: 'image',
-            link: `${baseUrl}/assets/thank_you.png`,
+            link: location ? `${baseUrl}/assets/location_received.png` : `${baseUrl}/assets/thank_you.png`,
             caption: finalMsg
         };
     } catch (error) {
