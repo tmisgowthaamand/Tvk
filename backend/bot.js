@@ -406,10 +406,25 @@ Specific details help us understand recurring patterns in your booth.
 
 You may also type *SKIP*.`;
 
+    let baseUrl = process.env.WHATSAPP_WEBHOOK_URL;
+    try {
+        const url = new URL(baseUrl);
+        baseUrl = url.origin;
+    } catch (e) {
+        // Fallback to old logic if URL parsing fails
+        baseUrl = baseUrl ? baseUrl.split('/api')[0].split('/webhook')[0] : '';
+    }
+
     return {
         type: 'interactive',
         interactive: {
             type: 'button',
+            header: {
+                type: 'image',
+                image: {
+                    link: `${baseUrl}/assets/address.jpeg`
+                }
+            },
             body: { text: msg },
             action: {
                 buttons: [
