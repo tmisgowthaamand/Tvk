@@ -462,7 +462,11 @@ async function handleIssueDescription(session, input) {
     }
 
     return [
-        thankYouMsg,
+        {
+            type: 'image',
+            link: `${baseUrl}/assets/thank_you.png`,
+            caption: thankYouMsg
+        },
         { type: 'delay', ms: 2000 },
         {
             type: 'interactive',
