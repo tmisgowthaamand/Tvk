@@ -692,7 +692,15 @@ async function handleSuggestionLocation(session, input, data) {
 
         const locationPart = actualAddress ? `\n📍 *Location:* ${actualAddress}` : '';
 
-        return `Thank you, *${session.verifiedVoter.name}*.${location ? ' Your location has been noted.' : ''}
+        let baseUrl = process.env.WHATSAPP_WEBHOOK_URL;
+        try {
+            const url = new URL(baseUrl);
+            baseUrl = url.origin;
+        } catch (e) {
+            baseUrl = baseUrl ? baseUrl.split('/api')[0].split('/webhook')[0] : '';
+        }
+
+        const finalMsg = `Thank you, *${session.verifiedVoter.name}*.${location ? ' Your location has been noted.' : ''}
 
 Your suggestion from Booth ${session.verifiedVoter.partNumber} has been recorded.${locationPart}
 
@@ -700,6 +708,12 @@ All ideas are reviewed collectively to guide long-term planning for ${session.ve
 ${location ? '\n*Our team will visit the area soon to evaluate this.*' : ''}
 
 _Send *Hi* anytime to start again._`;
+
+        return {
+            type: 'image',
+            link: `${baseUrl}/assets/thank_you.png`,
+            caption: finalMsg
+        };
     } catch (error) {
         console.error('Suggestion error:', error);
         return `⚠️ *System Error*\n\nPlease try again.`;
@@ -795,13 +809,27 @@ async function handleVolunteerLocation(session, input, data) {
 
         const locationPart = actualAddress ? `\n📍 *Location:* ${actualAddress}` : '';
 
-        return `Thank you, *${session.verifiedVoter.name}*.${location ? ' Your location has been recorded.' : ''}
+        let baseUrl = process.env.WHATSAPP_WEBHOOK_URL;
+        try {
+            const url = new URL(baseUrl);
+            baseUrl = url.origin;
+        } catch (e) {
+            baseUrl = baseUrl ? baseUrl.split('/api')[0].split('/webhook')[0] : '';
+        }
+
+        const finalMsg = `Thank you, *${session.verifiedVoter.name}*.${location ? ' Your location has been recorded.' : ''}
 
 Our organiser from Booth ${session.verifiedVoter.partNumber} will contact you with next steps.${locationPart}
 
 *Our team will connect with you soon at your booth.*
 
 _Send *Hi* anytime to start again._`;
+
+        return {
+            type: 'image',
+            link: `${baseUrl}/assets/thank_you.png`,
+            caption: finalMsg
+        };
     } catch (error) {
         console.error('Participation error:', error);
         return `⚠️ *System Error*\n\nPlease try again.`;
@@ -862,7 +890,15 @@ async function handleStayInformedLocation(session, input, data) {
 
         const locationPart = actualAddress ? `\n📍 *Location:* ${actualAddress}` : '';
 
-        return `Thank you, *${session.verifiedVoter.name}*.${location ? ' Your location has been received.' : ''}
+        let baseUrl = process.env.WHATSAPP_WEBHOOK_URL;
+        try {
+            const url = new URL(baseUrl);
+            baseUrl = url.origin;
+        } catch (e) {
+            baseUrl = baseUrl ? baseUrl.split('/api')[0].split('/webhook')[0] : '';
+        }
+
+        const finalMsg = `Thank you, *${session.verifiedVoter.name}*.${location ? ' Your location has been received.' : ''}
 
 You will receive updates relevant to Booth ${session.verifiedVoter.partNumber} and ${session.verifiedVoter.assemblyName || 'N/A'}.${locationPart}
 
@@ -870,6 +906,12 @@ We aim to keep communication transparent and focused on constituency priorities.
 *Our team will reach out to you soon.*
 
 _Send *Hi* anytime to start again._`;
+
+        return {
+            type: 'image',
+            link: `${baseUrl}/assets/thank_you.png`,
+            caption: finalMsg
+        };
     } catch (error) {
         console.error('Subscriber error:', error);
         return `⚠️ *System Error*\n\nPlease try again.`;
