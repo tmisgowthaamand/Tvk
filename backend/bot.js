@@ -318,9 +318,21 @@ Please select the area where you are facing a concern:`;
 
         case '2':
             session.step = 'SUGGESTION_TEXT';
-            return `We believe strong constituencies are built not just by solving issues, but by listening to constructive ideas.
+            const sgMsg = `We believe strong constituencies are built not just by solving issues, but by listening to constructive ideas.\n\nPlease share your suggestion in up to 250 characters.`;
 
-Please share your suggestion in up to 250 characters.`;
+            let sugBaseUrl = process.env.WHATSAPP_WEBHOOK_URL;
+            try {
+                const url = new URL(sugBaseUrl);
+                sugBaseUrl = url.origin;
+            } catch (e) {
+                sugBaseUrl = sugBaseUrl ? sugBaseUrl.split('/api')[0].split('/webhook')[0] : '';
+            }
+
+            return {
+                type: 'image',
+                link: `${sugBaseUrl}/assets/suggestion.png`,
+                caption: sgMsg
+            };
 
         case '3':
             session.step = 'PARTICIPATION_TYPE';
