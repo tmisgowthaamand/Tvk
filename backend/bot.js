@@ -370,24 +370,25 @@ Please select the area where you are facing a concern:`;
                 stayBaseUrl = stayBaseUrl ? stayBaseUrl.split('/api')[0].split('/webhook')[0] : '';
             }
 
-            return {
-                type: 'interactive',
-                interactive: {
-                    type: 'button',
-                    header: {
-                        type: 'image',
-                        image: {
-                            link: `${stayBaseUrl}/assets/location.png`
+            return [
+                {
+                    type: 'image',
+                    link: `${stayBaseUrl}/assets/location.png`
+                },
+                { type: 'delay', ms: 1000 },
+                {
+                    type: 'interactive',
+                    interactive: {
+                        type: 'button',
+                        body: { text: stayLocMsg },
+                        action: {
+                            buttons: [
+                                { type: 'reply', reply: { id: 'SKIP', title: 'SKIP' } }
+                            ]
                         }
-                    },
-                    body: { text: stayLocMsg },
-                    action: {
-                        buttons: [
-                            { type: 'reply', reply: { id: 'SKIP', title: 'SKIP' } }
-                        ]
                     }
                 }
-            };
+            ];
 
         default:
             return `❓ Please reply with a valid option:
@@ -494,15 +495,14 @@ async function handleIssueDescription(session, input) {
         },
         { type: 'delay', ms: 2000 },
         {
+            type: 'image',
+            link: `${baseUrl}/assets/location.png`
+        },
+        { type: 'delay', ms: 1000 },
+        {
             type: 'interactive',
             interactive: {
                 type: 'button',
-                header: {
-                    type: 'image',
-                    image: {
-                        link: `${baseUrl}/assets/location.png`
-                    }
-                },
                 body: { text: locMsg },
                 action: {
                     buttons: [
@@ -622,24 +622,25 @@ async function handleSuggestionText(session, input) {
         baseUrl = baseUrl ? baseUrl.split('/api')[0].split('/webhook')[0] : '';
     }
 
-    return {
-        type: 'interactive',
-        interactive: {
-            type: 'button',
-            header: {
-                type: 'image',
-                image: {
-                    link: `${baseUrl}/assets/location.png`
+    return [
+        {
+            type: 'image',
+            link: `${baseUrl}/assets/location.png`
+        },
+        { type: 'delay', ms: 1000 },
+        {
+            type: 'interactive',
+            interactive: {
+                type: 'button',
+                body: { text: sugLocMsg },
+                action: {
+                    buttons: [
+                        { type: 'reply', reply: { id: 'SKIP', title: 'SKIP' } }
+                    ]
                 }
-            },
-            body: { text: sugLocMsg },
-            action: {
-                buttons: [
-                    { type: 'reply', reply: { id: 'SKIP', title: 'SKIP' } }
-                ]
             }
         }
-    };
+    ];
 }
 
 async function handleSuggestionLocation(session, input, data) {
@@ -739,24 +740,25 @@ function handleParticipationType(session, input) {
         baseUrl = baseUrl ? baseUrl.split('/api')[0].split('/webhook')[0] : '';
     }
 
-    return {
-        type: 'interactive',
-        interactive: {
-            type: 'button',
-            header: {
-                type: 'image',
-                image: {
-                    link: `${baseUrl}/assets/location.png`
+    return [
+        {
+            type: 'image',
+            link: `${baseUrl}/assets/location.png`
+        },
+        { type: 'delay', ms: 1000 },
+        {
+            type: 'interactive',
+            interactive: {
+                type: 'button',
+                body: { text: volLocMsg },
+                action: {
+                    buttons: [
+                        { type: 'reply', reply: { id: 'SKIP', title: 'SKIP' } }
+                    ]
                 }
-            },
-            body: { text: volLocMsg },
-            action: {
-                buttons: [
-                    { type: 'reply', reply: { id: 'SKIP', title: 'SKIP' } }
-                ]
             }
         }
-    };
+    ];
 }
 
 async function handleVolunteerLocation(session, input, data) {
