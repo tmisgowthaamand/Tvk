@@ -191,7 +191,7 @@ Example: *ABC1234567*`;
     // Return single combined image message
     return {
         type: 'image',
-        link: `${baseUrl}/assets/welcome%20banger%201.jpg`,
+        link: `${baseUrl}/assets/political_banner.png`,
         caption: textMsg
     };
 }
