@@ -538,21 +538,20 @@ async function handleIssueLocation(session, input, data) {
         // Reset session
         clearSession(session.phoneNumber);
 
-        const locationPart = actualAddress ? `\n📍 *Exact Spot:* ${actualAddress}` : '';
-
         let responseMsg = `Thank you, *${session.verifiedVoter.name}*.
 
-Your concern from Booth ${session.verifiedVoter.partNumber} has been successfully recorded.`;
+Your concern from Booth ${session.verifiedVoter.partNumber} has been successfully recorded.
+
+Our ward organiser will connect with you shortly for further details.
+
+Your active participation helps us build a better ${session.verifiedVoter.assemblyName || 'Kavundampalayam'}.`;
 
         if (location) {
-            responseMsg += `\n\n✅ *Location Received:* ${locationPart}\n\n*Our field team will visit this spot soon to verify and solve the issue.*`;
-        } else {
-            responseMsg += `\n\nOur ward organiser will connect with you shortly for further details.`;
+            const locationPart = actualAddress ? ` ${actualAddress}` : '';
+            responseMsg += `\n\n✅ *Location Received:*${locationPart}`;
         }
 
-        responseMsg += `\n\nYour active participation helps us build a better ${session.verifiedVoter.assemblyName || 'constituency'}.
-
-_Send *Hi* anytime to start again._`;
+        responseMsg += `\n\n_Send *Hi* anytime to start again._`;
 
         return responseMsg;
     } catch (error) {
