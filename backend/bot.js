@@ -450,9 +450,7 @@ async function handleIssueDescription(session, input) {
     session.tempData.description = messageContent;
     session.step = 'ISSUE_LOCATION';
 
-    const locMsg = `To help us identify the exact spot and resolve it faster, please share the location of the issue (Pin or Live Location).
-
-You may also type *SKIP* or use the button below.`;
+    const locMsg = `Thank you! 🙏\n\nTo help us identify the exact spot and resolve it faster, please share the location of the issue (Pin or Live Location).\n\nYou may also type *SKIP* or use the button below.`;
 
     let baseUrl = process.env.WHATSAPP_WEBHOOK_URL;
     try {
