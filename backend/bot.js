@@ -271,10 +271,24 @@ How would you like to engage today?`;
                 }
             };
         } else {
-            return `We could not locate this EPIC number in our constituency records.
+            let baseUrl = process.env.WHATSAPP_WEBHOOK_URL;
+            try {
+                const url = new URL(baseUrl);
+                baseUrl = url.origin;
+            } catch (e) {
+                baseUrl = baseUrl ? baseUrl.split('/api')[0].split('/webhook')[0] : '';
+            }
+
+            const errorMsg = `We could not locate this EPIC number in our constituency records.
 
 Please verify and enter again.
 If you believe this is an error, you may contact your booth-level representative.`;
+
+            return {
+                type: 'image',
+                link: `${baseUrl}/assets/epic_not_found.png`,
+                caption: errorMsg
+            };
         }
     } catch (error) {
         console.error('Verification error:', error);
